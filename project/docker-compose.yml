@@ -1,0 +1,48 @@
+version: "3"
+
+services:
+  postgres:
+    image: "postgres:14.2"
+    ports:
+      - "5432:5432"
+    restart: always
+    deploy:
+      mode: replicated
+      replicas: 1
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: segments
+    # volumes:
+    #   - ./db-data/postgres/:/var/lib/postgresql/data/
+
+  air-service:
+    build:
+      context: ./..
+      dockerfile: ./air-service.dockerfile
+    restart: always
+    ports:
+      - "8080:8080"
+    deploy:
+      mode: replicated
+      replicas: 1
+    depends_on:
+      - migrate
+
+  migrate:
+    image: migrate/migrate
+    volumes:
+      - ./../migrations:/migrations
+    command:
+      [
+        "-path",
+        "migrations",
+        "-database",
+        "postgres://postgres:password@postgres/segments?sslmode=disable",
+        "up",
+      ]
+    restart: on-failure:3
+    links:
+      - postgres
+    depends_on:
+      - postgres
