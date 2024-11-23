@@ -6,11 +6,12 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+
+	"github.com/jackc/pgconn"
 )
 
 func (app *application) Sale(w http.ResponseWriter, r *http.Request) {
 	var ticket SalePayload
-	fmt.Println("Hello from sale")
 	err := app.readJSON(w, r, &ticket)
 	if err != nil {
 		switch {
@@ -63,11 +64,20 @@ func (app *application) Sale(w http.ResponseWriter, r *http.Request) {
 		segments = append(segments, sg)
 	}
 
-	fmt.Println(ticket.OperationTime)
 
 	err = app.DB.CreateSale(segments)
 	if err != nil {
-		app.errorJSON(w, err)
+		switch  pgErr := err.(type){
+		case *pgconn.PgError:
+			switch pgErr.Code {
+			case "23505":
+				app.errorJSON(w, errors.New("Ticket already exists"), http.StatusConflict)
+				return
+			}				
+		default:
+			fmt.Println(err)
+			app.errorJSON(w, err)
+		}
 		return
 	}
 

@@ -22,8 +22,7 @@ func (ct *CustomTime) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	ct.Time = parsedTime.UTC()
-	fmt.Println(ct.Time)
+	ct.Time = parsedTime
 	
 	return nil
 }
@@ -40,7 +39,7 @@ func (ct *CustomTime) IsSet() bool {
 }
 
 func (c CustomTime) Value() (driver.Value, error) {
-    return driver.Value(c.Time.UTC()), nil
+    return driver.Value(c.Time), nil
 }
 
 func (c *CustomTime) Scan(src interface{}) error {

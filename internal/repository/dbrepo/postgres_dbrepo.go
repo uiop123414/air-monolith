@@ -5,6 +5,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"time"
 )
 
@@ -30,18 +31,21 @@ func (m *PostgresDBRepo) CreateSale(segments []models.Segment) error {
 
 	query := `
 	INSERT INTO segments (
-		operation_type, operation_time, operation_time_zone, operation_place, 
+		operation_type, operation_time,operation_time_zone, operation_place, 
 		passenger_name, passenger_surname, passenger_patronymic, 
 		doc_type, doc_number, birthdate, gender, passenger_type, 
 		ticket_number, ticket_type, airline_code, flight_num, 
 		depart_place, depart_datetime, arrive_place, arrive_datetime, 
 		pnr_id, serial_number) 
-	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22)
+	VALUES ($1, 
+		($2 AT TIME ZONE 'UTC') AT TIME ZONE 'UTC',
+		EXTRACT(TIMEZONE FROM $2) / 60,
+		$3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
 	`
 
 	for i, segment := range segments {
 		_, err := tx.ExecContext(ctx, query,			
-			segment.OperationType, segment.OperationTime, "1", segment.OperationPlace,
+			segment.OperationType, segment.OperationTime.Time, segment.OperationPlace,
 			segment.PassengerName, segment.PassengerSurname, segment.PassengerPatronymic,
 			segment.DocType, segment.DocNumber, segment.Birthdate, segment.Gender,
 			segment.PassengerType, segment.TicketNumber, segment.TicketType,
@@ -51,6 +55,7 @@ func (m *PostgresDBRepo) CreateSale(segments []models.Segment) error {
 		)
 		if err != nil {
 			_ = tx.Rollback()
+			fmt.Println(err)
 			return err
 		}
 	}

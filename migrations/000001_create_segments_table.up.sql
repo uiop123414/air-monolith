@@ -3,7 +3,7 @@ CREATE TABLE segments (
     id SERIAL PRIMARY KEY,                  
     operation_type TEXT NOT NULL,   
     operation_time TIMESTAMP NOT NULL,
-    operation_time_zone TEXT NOT NULL,
+    operation_time_zone smallint,
     operation_place TEXT NOT NULL, 
     passenger_name TEXT NOT NULL,  
     passenger_surname TEXT NOT NULL, 
