@@ -1,13 +1,11 @@
 AIR_DIR = ../.
 
-AIR_BINARY = ../air-serivce
+AIR_BINARY = ../air-service
 
 .PHONY: air-build
 air-build:
-	@echo "Building air server..."
-	cd ${AIR_DIR} && GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o ./airApp ./cmd/api 
-
-## up_build: stops docker-compose (if running), builds all projects and starts docker compose
+	@echo Building air server...
+	cd ${AIR_DIR} && GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o ./airApp ./cmd/api
 up_build: air-build
 	@echo "Stopping docker images (if running...)"
 	docker-compose down

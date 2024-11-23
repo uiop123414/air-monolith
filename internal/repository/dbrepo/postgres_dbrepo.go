@@ -137,11 +137,11 @@ func (m *PostgresDBRepo) RefundTicketsByTicketNumber(tn string, count int) error
 	}
 
 	query := `
-		UPDATE segements
-		SET operation_type=refund
+		UPDATE segments
+		SET operation_type='refund'
 		WHERE ticket_number = $1 AND serial_number = $2`
 
-	for i := range count {
+	for i := range count + 1 {
 		_, err = m.DB.ExecContext(ctx, query, tn, i)
 		if err != nil {
 			_ = tx.Rollback()

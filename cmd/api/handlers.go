@@ -70,7 +70,7 @@ func (app *application) Sale(w http.ResponseWriter, r *http.Request) {
 		case *pgconn.PgError:
 			switch pgErr.Code {
 			case "23505":
-				app.errorJSON(w, errors.New("Ticket already exists"), http.StatusConflict)
+				app.errorJSON(w, errors.New("ticket already exists"), http.StatusConflict)
 				return
 			}
 		default:
