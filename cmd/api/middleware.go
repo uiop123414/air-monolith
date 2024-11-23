@@ -25,6 +25,7 @@ func (app *application) TimeoutMiddleware(timeout time.Duration) func(http.Handl
 			case <-done:
 			case <-ctx.Done():
 				http.Error(w, "Request Timeout", http.StatusRequestTimeout) // TODO after user was sent 408 response, upper goroutine continues working
+				app.statusWrote <- true
 				return
 			}
 		})

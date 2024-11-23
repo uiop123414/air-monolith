@@ -9,7 +9,6 @@ import (
 	"time"
 )
 
-
 type PostgresDBRepo struct {
 	DB *sql.DB
 }
@@ -23,7 +22,7 @@ func (m *PostgresDBRepo) Connection() *sql.DB {
 func (m *PostgresDBRepo) CreateSale(segments []models.Segment) error {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeOut)
 	defer cancel()
-	
+
 	tx, err := m.DB.Begin()
 	if err != nil {
 		return err
@@ -44,18 +43,17 @@ func (m *PostgresDBRepo) CreateSale(segments []models.Segment) error {
 	`
 
 	for i, segment := range segments {
-		_, err := tx.ExecContext(ctx, query,			
+		_, err := tx.ExecContext(ctx, query,
 			segment.OperationType, segment.OperationTime.Time, segment.OperationPlace,
 			segment.PassengerName, segment.PassengerSurname, segment.PassengerPatronymic,
 			segment.DocType, segment.DocNumber, segment.Birthdate, segment.Gender,
 			segment.PassengerType, segment.TicketNumber, segment.TicketType,
 			segment.AirlineCode, segment.FlightNum, segment.DepartPlace,
 			segment.DepartDatetime, segment.ArrivePlace, segment.ArriveDatetime,
-			segment.PNRID, i+1 ,
+			segment.PNRID, i+1,
 		)
 		if err != nil {
 			_ = tx.Rollback()
-			fmt.Println(err)
 			return err
 		}
 	}
@@ -67,7 +65,7 @@ func (m *PostgresDBRepo) CreateSale(segments []models.Segment) error {
 	return nil
 }
 
-func (m *PostgresDBRepo) GetTicketByTicketNumber(tn string) (*models.Segment, error) {
+func (m *PostgresDBRepo) GetTicketsByTicketNumber(tn string) ([]models.Segment, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeOut)
 	defer cancel()
 
@@ -80,42 +78,81 @@ func (m *PostgresDBRepo) GetTicketByTicketNumber(tn string) (*models.Segment, er
 			pnr_id 
 		FROM segments 
 		WHERE ticket_number = $1
-		LIMIT 1
 	`
 
-	var segment models.Segment
+	var segments []models.Segment
 
-	err := m.DB.QueryRowContext(ctx, query, tn).Scan(
-		&segment.OperationType,
-		&segment.OperationTime,
-		&segment.OperationPlace,
-		&segment.PassengerName,
-		&segment.PassengerSurname,
-		&segment.PassengerPatronymic,
-		&segment.DocType,
-		&segment.DocNumber,
-		&segment.Birthdate,
-		&segment.Gender,
-		&segment.PassengerType,
-		&segment.TicketNumber,
-		&segment.TicketType,
-		&segment.AirlineCode,
-		&segment.FlightNum,
-		&segment.DepartPlace,
-		&segment.DepartDatetime,
-		&segment.ArrivePlace,
-		&segment.ArriveDatetime,
-		&segment.PNRID,
-	)
+	rows, err := m.DB.QueryContext(ctx, query, tn)
+	for rows.Next() {
+		var segment models.Segment
+		rows.Scan(
+			&segment.OperationType,
+			&segment.OperationTime,
+			&segment.OperationPlace,
+			&segment.PassengerName,
+			&segment.PassengerSurname,
+			&segment.PassengerPatronymic,
+			&segment.DocType,
+			&segment.DocNumber,
+			&segment.Birthdate,
+			&segment.Gender,
+			&segment.PassengerType,
+			&segment.TicketNumber,
+			&segment.TicketType,
+			&segment.AirlineCode,
+			&segment.FlightNum,
+			&segment.DepartPlace,
+			&segment.DepartDatetime,
+			&segment.ArrivePlace,
+			&segment.ArriveDatetime,
+			&segment.PNRID,
+		)
+
+		segments = append(segments, segment)
+
+		if err := rows.Err(); err != nil {
+			return nil, err
+		}
+	}
 
 	if err != nil {
 		switch {
-		case errors.Is(err,sql.ErrNoRows):
+		case errors.Is(err, sql.ErrNoRows):
 			return nil, nil
 		default:
 			return nil, err
 		}
 	}
 
-	return &segment, nil
+	return segments, nil
+}
+
+func (m *PostgresDBRepo) RefundTicketsByTicketNumber(tn string, count int) error {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeOut)
+	defer cancel()
+
+	tx, err := m.DB.Begin()
+	if err != nil {
+		return err
+	}
+
+	query := `
+		UPDATE segements
+		SET operation_type=refund
+		WHERE ticket_number = $1 AND serial_number = $2`
+
+	for i := range count {
+		_, err = m.DB.ExecContext(ctx, query, tn, i)
+		if err != nil {
+			_ = tx.Rollback()
+			fmt.Println(err)
+			return err
+		}
+	}
+
+	if err := tx.Commit(); err != nil {
+		return err
+	}
+
+	return nil
 }

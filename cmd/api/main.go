@@ -25,9 +25,10 @@ type config struct {
 }
 
 type application struct {
-	cfg    config
-	logger *jsonlog.Logger
-	DB     repository.DatabaseRepo
+	cfg         config
+	logger      *jsonlog.Logger
+	DB          repository.DatabaseRepo
+	statusWrote chan bool
 }
 
 func main() {

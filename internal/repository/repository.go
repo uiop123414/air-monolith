@@ -8,5 +8,6 @@ import (
 type DatabaseRepo interface {
 	Connection() *sql.DB
 	CreateSale(sg []models.Segment) error
-	GetTicketByTicketNumber(tn string) (*models.Segment, error)
+	GetTicketsByTicketNumber(tn string) ([]models.Segment, error)
+	RefundTicketsByTicketNumber(tn string, count int) error
 }

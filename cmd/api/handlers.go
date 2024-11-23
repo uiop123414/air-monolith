@@ -64,16 +64,15 @@ func (app *application) Sale(w http.ResponseWriter, r *http.Request) {
 		segments = append(segments, sg)
 	}
 
-
 	err = app.DB.CreateSale(segments)
 	if err != nil {
-		switch  pgErr := err.(type){
+		switch pgErr := err.(type) {
 		case *pgconn.PgError:
 			switch pgErr.Code {
 			case "23505":
 				app.errorJSON(w, errors.New("Ticket already exists"), http.StatusConflict)
 				return
-			}				
+			}
 		default:
 			fmt.Println(err)
 			app.errorJSON(w, err)
@@ -81,7 +80,50 @@ func (app *application) Sale(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	app.writeJSON(w, http.StatusOK, ticket)
+	var payload JSONResponse
+	payload.Error = false
+	payload.Message = "ticket was sold"
 
-	fmt.Println(app.DB.GetTicketByTicketNumber(ticket.Passenger.TicketNumber))
+	app.writeJSON(w, http.StatusOK, payload)
+
+}
+
+func (app *application) Refund(w http.ResponseWriter, r *http.Request) {
+	var rp RefundPayload
+
+	fmt.Println("Hello")
+	err := app.readJSON(w, r, &rp)
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	segments, err := app.DB.GetTicketsByTicketNumber(rp.TicketNumber)
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	if segments == nil {
+		app.errorJSON(w, fmt.Errorf("no sale by %s ticket id", rp.TicketNumber), http.StatusConflict)
+		return
+	}
+
+	for _, sg := range segments {
+		if sg.OperationType == "refund" {
+			app.errorJSON(w, fmt.Errorf("ticket %s was refunded", rp.TicketNumber), http.StatusConflict)
+			return
+		}
+	}
+
+	err = app.DB.RefundTicketsByTicketNumber(rp.TicketNumber, len(segments))
+	if err != nil {
+		app.errorJSON(w, errors.New("database error"), http.StatusInternalServerError)
+	}
+
+	var payload JSONResponse
+	payload.Error = false
+	payload.Message = "ticket was refunded"
+
+	app.writeJSON(w, http.StatusOK, payload)
 }

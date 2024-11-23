@@ -12,9 +12,10 @@ func (app *application) routes() http.Handler {
 
 	mux.Use(middleware.Recoverer)
 
-	mux.Route("/process", func(mux chi.Router) {
+	mux.Route("/v1", func(mux chi.Router) {
 		mux.Use(app.TimeoutMiddleware(app.cfg.timeout))
-		mux.Post("/sale", app.Sale)
+		mux.Post("/process/sale", app.Sale)
+		mux.Post("/process/refund", app.Refund)
 	})
 
 	return mux
