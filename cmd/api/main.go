@@ -7,6 +7,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"sync"
 	"time"
 )
 
@@ -25,21 +26,23 @@ type config struct {
 }
 
 type application struct {
-	cfg         config
-	logger      *jsonlog.Logger
-	DB          repository.DatabaseRepo
-	statusWrote chan bool
+	cfg    config
+	logger *jsonlog.Logger
+	DB     repository.DatabaseRepo
+	mu     sync.Mutex
 }
+
+const timeout = time.Duration(120 * time.Second)
 
 func main() {
 	var cfg config
 
-	cfg.timeout = time.Duration(120 * time.Second)
+	cfg.timeout = timeout
 
 	flag.IntVar(&cfg.port, "port", 8080, "API server port")
 	flag.StringVar(&cfg.Domain, "domain", "localhost", "domain")
 	flag.StringVar(&cfg.env, "env", "dev", "docker|dev|main|")
-	flag.StringVar(&cfg.DSN, "dsn", "host=localhost port=5432 user=postgres password=password dbname=segments sslmode=disable timezone=UTC connect_timeout=5", "Database Source Name")
+	flag.StringVar(&cfg.DSN, "dsn", "host=postgres port=5432 user=postgres password=password dbname=segments sslmode=disable timezone=UTC connect_timeout=5", "Database Source Name")
 
 	flag.IntVar(&cfg.db.maxOpensConns, "db-max-opens-conns", 25, "PostgreSQL max open connections")
 	flag.IntVar(&cfg.db.maxIdleConns, "db-max-idle-conns", 25, "PostgreSQL max edle connections")
@@ -49,7 +52,7 @@ func main() {
 	app.cfg = cfg
 	app.logger = jsonlog.New(os.Stdout, jsonlog.LevelInfo)
 
-	app.statusWrote = make(chan bool)
+	app.mu = sync.Mutex{}
 
 	conn, err := app.connectToDB()
 	if err != nil {

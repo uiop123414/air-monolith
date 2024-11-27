@@ -3,7 +3,6 @@ package main
 import (
 	"air-monolith/internal/models"
 	"air-monolith/internal/validator"
-	"errors"
 	"fmt"
 	"net/http"
 
@@ -15,7 +14,7 @@ func (app *application) Sale(w http.ResponseWriter, r *http.Request) {
 	err := app.readJSON(w, r, &ticket)
 	if err != nil {
 		switch {
-		case err.Error() == "http: request body too large":
+		case err == models.ErrBodyTooLarge:
 			app.errorJSON(w, err, http.StatusRequestEntityTooLarge)
 			return
 		default:
@@ -31,7 +30,7 @@ func (app *application) Sale(w http.ResponseWriter, r *http.Request) {
 	ValidateDocNumber(v, ticket.Passenger.DocType, ticket.Passenger.DocNumber)
 
 	if !v.Valid() {
-		app.errorJSONWithMSG(w, errors.New("invalid credentials"), v.Errors)
+		app.errorJSONWithMSG(w, models.ErrInvalidCredentils, v.Errors)
 		return
 	}
 
@@ -69,12 +68,11 @@ func (app *application) Sale(w http.ResponseWriter, r *http.Request) {
 		switch pgErr := err.(type) {
 		case *pgconn.PgError:
 			switch pgErr.Code {
-			case "23505":
-				app.errorJSON(w, errors.New("ticket already exists"), http.StatusConflict)
+			case models.DublicateCode:
+				app.errorJSON(w, models.ErrTicketAlreadyExists, http.StatusConflict)
 				return
 			}
 		default:
-			fmt.Println(err)
 			app.errorJSON(w, err)
 		}
 		return
@@ -91,7 +89,6 @@ func (app *application) Sale(w http.ResponseWriter, r *http.Request) {
 func (app *application) Refund(w http.ResponseWriter, r *http.Request) {
 	var rp RefundPayload
 
-	fmt.Println("Hello")
 	err := app.readJSON(w, r, &rp)
 	if err != nil {
 		app.errorJSON(w, err)
@@ -105,20 +102,22 @@ func (app *application) Refund(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if segments == nil {
-		app.errorJSON(w, fmt.Errorf("no sale by %s ticket id", rp.TicketNumber), http.StatusConflict)
+		app.errorJSON(w, models.ErrNoSale(rp.TicketNumber), http.StatusConflict)
 		return
 	}
 
+	fmt.Println(segments[0].OperationTime)
+
 	for _, sg := range segments {
-		if sg.OperationType == "refund" {
-			app.errorJSON(w, fmt.Errorf("ticket %s was refunded", rp.TicketNumber), http.StatusConflict)
+		if sg.OperationType == models.OperationRefund {
+			app.errorJSON(w, models.ErrTicketWasRefunded(rp.TicketNumber), http.StatusConflict)
 			return
 		}
 	}
 
 	err = app.DB.RefundTicketsByTicketNumber(rp.TicketNumber, len(segments))
 	if err != nil {
-		app.errorJSON(w, errors.New("database error"), http.StatusInternalServerError)
+		app.errorJSON(w, models.ErrServerError, http.StatusInternalServerError)
 	}
 
 	var payload JSONResponse

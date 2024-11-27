@@ -1,6 +1,8 @@
 package main
 
 import (
+	"air-monolith/internal/models"
+	"air-monolith/internal/rww"
 	"context"
 	"net/http"
 	"time"
@@ -9,6 +11,9 @@ import (
 func (app *application) TimeoutMiddleware(timeout time.Duration) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// Wrap ResponseWriter
+			rw := &rww.ResponseWriterWrapper{ResponseWriter: w}
+			
 			ctx, cancel := context.WithTimeout(r.Context(), timeout)
 			defer cancel()
 
@@ -17,15 +22,14 @@ func (app *application) TimeoutMiddleware(timeout time.Duration) func(http.Handl
 			done := make(chan struct{})
 
 			go func() {
-				next.ServeHTTP(w, r)
+				next.ServeHTTP(rw, r)
 				close(done)
 			}()
 
 			select {
 			case <-done:
 			case <-ctx.Done():
-				http.Error(w, "Request Timeout", http.StatusRequestTimeout) // TODO after user was sent 408 response, upper goroutine continues working
-				app.statusWrote <- true
+				app.errorJSON(rw, models.ErrRequestTimeout, http.StatusRequestTimeout) // TODO after user was sent 408 response, upper goroutine continues working
 				return
 			}
 		})

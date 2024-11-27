@@ -3,7 +3,7 @@ CREATE TABLE segments (
     id SERIAL PRIMARY KEY,                  
     operation_type TEXT NOT NULL,   
     operation_time TIMESTAMP NOT NULL,
-    operation_time_zone smallint,
+    operation_time_timezone smallint NOT NULL,
     operation_place TEXT NOT NULL, 
     passenger_name TEXT NOT NULL,  
     passenger_surname TEXT NOT NULL, 
@@ -19,11 +19,11 @@ CREATE TABLE segments (
     flight_num INTEGER NOT NULL,           
     depart_place TEXT NOT NULL,    
     depart_datetime TIMESTAMP NOT NULL,
+    depart_datetime_timezone smallint NOT NULL,
     arrive_place TEXT NOT NULL,     
-    arrive_datetime TIMESTAMP NOT NULL, 
+    arrive_datetime TIMESTAMP NOT NULL,
+    arrive_datetime_timezone smallint NOT NULL,
     pnr_id TEXT NOT NULL,           
     serial_number INTEGER NOT NULL,       
-    created_at TIMESTAMP DEFAULT NOW(),
-    updated_at TIMESTAMP DEFAULT NOW(), 
     CONSTRAINT unique_ticket_serial UNIQUE (ticket_number, serial_number)
 );

@@ -26,3 +26,8 @@ type Segment struct {
 	CreatedAt           time.Time  `json:"-"`
 	UpdatedAt           time.Time  `json:"-"`
 }
+
+const (
+	OperationSale   = "sale"
+	OperationRefund = "refund"
+)
