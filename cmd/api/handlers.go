@@ -2,6 +2,7 @@ package main
 
 import (
 	"air-monolith/internal/models"
+	"air-monolith/internal/schemas"
 	"air-monolith/internal/validator"
 	"errors"
 	"net/http"
@@ -11,7 +12,7 @@ import (
 
 func (app *application) Sale(w http.ResponseWriter, r *http.Request) {
 	var ticket SalePayload
-	err := app.readJSON(w, r, &ticket)
+	err := app.readJSON(w, r, &ticket, schemas.SaleLoader)
 	if err != nil {
 		switch {
 		case errors.Is(err, models.ErrBodyTooLarge):
@@ -89,7 +90,7 @@ func (app *application) Sale(w http.ResponseWriter, r *http.Request) {
 func (app *application) Refund(w http.ResponseWriter, r *http.Request) {
 	var rp RefundPayload
 
-	err := app.readJSON(w, r, &rp)
+	err := app.readJSON(w, r, &rp, schemas.RefundLoader)
 	if err != nil {
 		app.errorJSON(w, err)
 		return

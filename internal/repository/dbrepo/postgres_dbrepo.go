@@ -107,7 +107,7 @@ func (m *PostgresDBRepo) RefundTicketsByTicketNumber(tn string) error {
 	m.setDBTimeout()
 
 	count, err := m.getSaleTicketsCountByTicketNumber(ctx, tx, tn)
-	
+
 	if err != nil {
 		_ = tx.Rollback()
 		return err
@@ -139,14 +139,12 @@ func (m *PostgresDBRepo) RefundTicketsByTicketNumber(tn string) error {
 		return models.ErrTicketWasRefunded
 	}
 
-
 	if err := tx.Commit(); err != nil {
 		return err
 	}
 
 	return nil
 }
-
 
 func (m *PostgresDBRepo) setDBTimeout() error {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeOut)

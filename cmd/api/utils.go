@@ -6,6 +6,8 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+
+	"github.com/xeipuuv/gojsonschema"
 )
 
 type JSONResponse struct {
@@ -46,14 +48,16 @@ func (app *application) writeJSON(w http.ResponseWriter, status int, data interf
 	return nil
 }
 
-func (app *application) readJSON(w http.ResponseWriter, r *http.Request, data interface{}) error {
+func (app *application) readJSON(w http.ResponseWriter, r *http.Request, data interface{}, loader gojsonschema.JSONLoader) error {
 	r.Body = http.MaxBytesReader(w, r.Body, int64(maxBytes))
 
-	dec := json.NewDecoder(r.Body)
+	bodyBytes, err := io.ReadAll(r.Body)
+	if err != nil {
+		return err
+	}
 
-	dec.DisallowUnknownFields()
-
-	err := dec.Decode(data)
+	payloadLoader := gojsonschema.NewBytesLoader(bodyBytes) // TODO разобраться с JSON схемами
+ 
 	if err != nil {
 		return err
 	}
