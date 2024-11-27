@@ -28,8 +28,6 @@ services:
       replicas: 1
     depends_on:
       - migrate
-    environment:
-      dsn: "host=postgres port=5432 user=postgres password=password dbname=segments sslmode=disable timezone=UTC connect_timeout=5"
 
   migrate:
     image: migrate/migrate
