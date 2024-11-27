@@ -13,7 +13,7 @@ func (app *application) TimeoutMiddleware(timeout time.Duration) func(http.Handl
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// Wrap ResponseWriter
 			rw := &rww.ResponseWriterWrapper{ResponseWriter: w}
-			
+
 			ctx, cancel := context.WithTimeout(r.Context(), timeout)
 			defer cancel()
 

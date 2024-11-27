@@ -2,7 +2,6 @@ package models
 
 import (
 	"errors"
-	"fmt"
 )
 
 var (
@@ -14,6 +13,8 @@ var (
 	ErrColumnNotSupported        = errors.New("ERROR: column type not supported")
 	ErrRequestTimeout            = errors.New("ERROR: request Timeout")
 	ErrAlreadyResponded          = errors.New("already responded")
+	ErrNoSale                    = errors.New("ERROR: no sale by ticket id")
+	ErrTicketWasRefunded         = errors.New("ERROR: ticket was refunded")
 
 	ErrBodyTooLarge = errors.New("http: request body too large")
 )
@@ -21,11 +22,3 @@ var (
 var (
 	DublicateCode = "23505"
 )
-
-func ErrNoSale(tn string) error {
-	return errors.New(fmt.Sprintf("ERROR: no sale by %s ticket id", tn))
-}
-
-func ErrTicketWasRefunded(tn string) error {
-	return errors.New(fmt.Sprintf("ERROR: ticket %s was refunded", tn))
-}

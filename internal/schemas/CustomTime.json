@@ -1,0 +1,6 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "string",
+  "format": "date-time",
+  "description": "CustomTime is a string in RFC3339 format, e.g., 2006-01-02T15:04:05Z07:00"
+}

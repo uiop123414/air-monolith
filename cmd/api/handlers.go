@@ -3,7 +3,7 @@ package main
 import (
 	"air-monolith/internal/models"
 	"air-monolith/internal/validator"
-	"fmt"
+	"errors"
 	"net/http"
 
 	"github.com/jackc/pgconn"
@@ -14,7 +14,7 @@ func (app *application) Sale(w http.ResponseWriter, r *http.Request) {
 	err := app.readJSON(w, r, &ticket)
 	if err != nil {
 		switch {
-		case err == models.ErrBodyTooLarge:
+		case errors.Is(err, models.ErrBodyTooLarge):
 			app.errorJSON(w, err, http.StatusRequestEntityTooLarge)
 			return
 		default:
@@ -95,29 +95,14 @@ func (app *application) Refund(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	segments, err := app.DB.GetTicketsByTicketNumber(rp.TicketNumber)
+	err = app.DB.RefundTicketsByTicketNumber(rp.TicketNumber)
 	if err != nil {
-		app.errorJSON(w, err)
-		return
-	}
-
-	if segments == nil {
-		app.errorJSON(w, models.ErrNoSale(rp.TicketNumber), http.StatusConflict)
-		return
-	}
-
-	fmt.Println(segments[0].OperationTime)
-
-	for _, sg := range segments {
-		if sg.OperationType == models.OperationRefund {
-			app.errorJSON(w, models.ErrTicketWasRefunded(rp.TicketNumber), http.StatusConflict)
-			return
+		switch err {
+		case models.ErrTicketWasRefunded:
+			app.errorJSON(w, err, http.StatusConflict)
+		default:
+			app.errorJSON(w, models.ErrServerError, http.StatusInternalServerError)
 		}
-	}
-
-	err = app.DB.RefundTicketsByTicketNumber(rp.TicketNumber, len(segments))
-	if err != nil {
-		app.errorJSON(w, models.ErrServerError, http.StatusInternalServerError)
 	}
 
 	var payload JSONResponse

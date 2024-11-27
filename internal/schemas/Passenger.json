@@ -1,0 +1,47 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "surname": {
+      "type": "string"
+    },
+    "patronymic": {
+      "type": "string"
+    },
+    "doc_type": {
+      "type": "string"
+    },
+    "doc_number": {
+      "type": "string"
+    },
+    "birthdate": {
+      "$ref": "./Birthdate.json"
+    },
+    "gender": {
+      "type": "string"
+    },
+    "passenger_type": {
+      "type": "string"
+    },
+    "ticket_number": {
+      "type": "string"
+    },
+    "ticket_type": {
+      "type": "integer"
+    }
+  },
+  "required": [
+    "name",
+    "surname",
+    "doc_type",
+    "doc_number",
+    "birthdate",
+    "gender",
+    "passenger_type",
+    "ticket_number",
+    "ticket_type"
+  ]
+}

@@ -41,7 +41,7 @@ func main() {
 
 	flag.IntVar(&cfg.port, "port", 8080, "API server port")
 	flag.StringVar(&cfg.Domain, "domain", "localhost", "domain")
-	flag.StringVar(&cfg.env, "env", "dev", "docker|dev|main|")
+	flag.StringVar(&cfg.env, "env", "dev", "dev|main")
 	flag.StringVar(&cfg.DSN, "dsn", "host=postgres port=5432 user=postgres password=password dbname=segments sslmode=disable timezone=UTC connect_timeout=5", "Database Source Name")
 
 	flag.IntVar(&cfg.db.maxOpensConns, "db-max-opens-conns", 25, "PostgreSQL max open connections")

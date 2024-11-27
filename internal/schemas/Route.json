@@ -1,0 +1,36 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "airline_code": {
+      "type": "string"
+    },
+    "flight_num": {
+      "type": "integer"
+    },
+    "depart_place": {
+      "type": "string"
+    },
+    "depart_datetime": {
+      "$ref": "./CustomTime.json"
+    },
+    "arrive_place": {
+      "type": "string"
+    },
+    "arrive_datetime": {
+      "$ref": "./CustomTime.json"
+    },
+    "pnr_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "airline_code",
+    "flight_num",
+    "depart_place",
+    "depart_datetime",
+    "arrive_place",
+    "arrive_datetime",
+    "pnr_id"
+  ]
+}
