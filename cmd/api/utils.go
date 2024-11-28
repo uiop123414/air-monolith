@@ -4,6 +4,7 @@ import (
 	"air-monolith/internal/models"
 	"air-monolith/internal/rww"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 
@@ -50,6 +51,7 @@ func (app *application) writeJSON(w http.ResponseWriter, status int, data interf
 
 func (app *application) readJSON(w http.ResponseWriter, r *http.Request, data interface{}, loader gojsonschema.JSONLoader) error {
 	r.Body = http.MaxBytesReader(w, r.Body, int64(maxBytes))
+	defer r.Body.Close()
 
 	bodyBytes, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -57,16 +59,21 @@ func (app *application) readJSON(w http.ResponseWriter, r *http.Request, data in
 	}
 
 	payloadLoader := gojsonschema.NewBytesLoader(bodyBytes) // TODO разобраться с JSON схемами
- 
+
+	result, err := gojsonschema.Validate(loader, payloadLoader)
 	if err != nil {
 		return err
 	}
-	defer r.Body.Close()
 
-	err = dec.Decode(&struct{}{})
-	if err != io.EOF {
-		return models.ErrBodyMustConainSingleValue
+	if !result.Valid() {
+		for _, desc := range result.Errors() {
+            fmt.Printf("- %s\n", desc)
+        }
+		return models.ErrJSONNotValid
 	}
+
+	data = result
+	fmt.Println(result)
 
 	return nil
 }

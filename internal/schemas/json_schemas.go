@@ -1,12 +1,18 @@
 package schemas
 
-import "github.com/xeipuuv/gojsonschema"
+import (
+	"fmt"
+
+	"github.com/xeipuuv/gojsonschema"
+)
+
+const path = "/app/schemas/jsons"
 
 var (
-	BirthdateLoader  = gojsonschema.NewReferenceLoader("file://./jsons/Birthdate.json")
-	CustomTimeLoader = gojsonschema.NewReferenceLoader("file://./jsons/CustomTime.json")
-	PassengerLoader  = gojsonschema.NewReferenceLoader("file://./jsons/Birthdate.json")
-	RefundLoader     = gojsonschema.NewReferenceLoader("file://./jsons/Redund.json")
-	RouteLoader      = gojsonschema.NewReferenceLoader("file://./jsons/Route.json")
-	SaleLoader       = gojsonschema.NewReferenceLoader("file://./jsons/Sale.json")
+    BirthdateLoader  = gojsonschema.NewReferenceLoader(fmt.Sprintf(`file://%s/Birthdate.json`, path))
+    CustomTimeLoader = gojsonschema.NewReferenceLoader(fmt.Sprintf(`file://%s/CustomTime.json`, path))
+    PassengerLoader  = gojsonschema.NewReferenceLoader(fmt.Sprintf(`file://%s/Birthdate.json`, path))
+    RefundLoader     = gojsonschema.NewReferenceLoader(fmt.Sprintf(`file://%s/Refund.json`, path))
+    RouteLoader      = gojsonschema.NewReferenceLoader(fmt.Sprintf(`file://%s/Route.json`, path))
+    SaleLoader       = gojsonschema.NewReferenceLoader(fmt.Sprintf(`file://%s/Sale.json`, path))
 )

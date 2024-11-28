@@ -15,6 +15,7 @@ var (
 	ErrAlreadyResponded          = errors.New("already responded")
 	ErrNoSale                    = errors.New("ERROR: no sale by ticket id")
 	ErrTicketWasRefunded         = errors.New("ERROR: ticket was refunded")
+	ErrJSONNotValid				 = errors.New("ERROR: json not valid")
 
 	ErrBodyTooLarge = errors.New("http: request body too large")
 )
