@@ -41,4 +41,3 @@ type RefundPayload struct {
 	OperationPlace string            `json:"operation_place"`
 	TicketNumber   string            `json:"ticket_number"`
 }
-

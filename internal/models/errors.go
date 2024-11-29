@@ -14,8 +14,8 @@ var (
 	ErrRequestTimeout            = errors.New("ERROR: request Timeout")
 	ErrAlreadyResponded          = errors.New("ERROR: already responded")
 	ErrNoSale                    = errors.New("ERROR: no sale by ticket id")
-	ErrTicketRefund         	 = errors.New("ERROR: unknown refund error")
-	ErrJSONNotValid				 = errors.New("ERROR: json not valid")
+	ErrTicketRefund              = errors.New("ERROR: unknown refund error")
+	ErrJSONNotValid              = errors.New("ERROR: json not valid")
 
 	ErrBodyTooLarge = errors.New("http: request body too large")
 )

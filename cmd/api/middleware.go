@@ -1,7 +1,6 @@
 package main
 
 import (
-	"air-monolith/internal/models"
 	"air-monolith/internal/rww"
 	"context"
 	"net/http"
@@ -29,7 +28,7 @@ func (app *application) TimeoutMiddleware(timeout time.Duration) func(http.Handl
 			select {
 			case <-done:
 			case <-ctx.Done():
-				app.errorJSON(rw, models.ErrRequestTimeout, http.StatusRequestTimeout) // TODO after user was sent 408 response, upper goroutine continues working
+				app.errorJSON(rw, http.StatusRequestTimeout) // TODO after user was sent 408 response, upper goroutine continues working
 				return
 			}
 		})

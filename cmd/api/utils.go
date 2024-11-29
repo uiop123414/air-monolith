@@ -18,7 +18,7 @@ type JSONResponse struct {
 
 const RequestSizeLimit = 2 * 1024 * 1024 // 2 kBs
 
-func (app *application) writeJSON(w http.ResponseWriter, status int, data interface{}, headers ...http.Header) error {
+func (app *application) writeJSON(w http.ResponseWriter, status int, headers ...http.Header) error {
 	rw, ok := w.(*rww.ResponseWriterWrapper)
 	if !ok {
 		rw = &rww.ResponseWriterWrapper{ResponseWriter: w}
@@ -28,27 +28,19 @@ func (app *application) writeJSON(w http.ResponseWriter, status int, data interf
 		return models.ErrAlreadyResponded
 	}
 
-	out, err := json.Marshal(data)
-	if err != nil {
-		return err
-	}
-
+	
 	if len(headers) > 0 {
 		for key, value := range headers[0] {
 			w.Header()[key] = value
 		}
 	}
+	
 	w.WriteHeader(status)
-	w.Header().Set("Content-Type", "application/json")
-	_, err = w.Write(out)
-	if err != nil {
-		return err
-	}
-
+	w.Write([]byte{})
 	return nil
 }
 
-func (app *application) readJSON(w http.ResponseWriter, r *http.Request, data interface{}, loader gojsonschema.JSONLoader) error {
+func (app *application) readJSON(w http.ResponseWriter, r *http.Request, loader gojsonschema.JSONLoader, data interface{}) error {
 	r.Body = http.MaxBytesReader(w, r.Body, int64(RequestSizeLimit))
 	defer r.Body.Close()
 
@@ -70,38 +62,18 @@ func (app *application) readJSON(w http.ResponseWriter, r *http.Request, data in
 	return nil
 }
 
-func (app *application) errorJSON(w http.ResponseWriter, err error, status ...int) error {
+func (app *application) errorJSON(w http.ResponseWriter, status ...int) error {
 	statusCode := http.StatusBadRequest
 
 	if len(status) > 0 {
 		statusCode = status[0]
 	}
 
-	var payload JSONResponse
-	payload.Error = true
-	payload.Message = err.Error()
-
-	return app.writeJSON(w, statusCode, payload)
+	return app.writeJSON(w, statusCode)
 }
 
-func (app *application) errorJSONWithMSG(w http.ResponseWriter, err error, errors map[string]string, status ...int) error {
-	statusCode := http.StatusBadRequest
-
-	if len(status) > 0 {
-		statusCode = status[0]
-	}
-
-	var payload JSONResponse
-	payload.Error = true
-	payload.Message = err.Error()
-	payload.Data = errors
-
-	return app.writeJSON(w, statusCode, payload)
-}
-
-
-func (app *application) validateJSON( loader gojsonschema.JSONLoader, data []byte) error {
-	payloadLoader := gojsonschema.NewBytesLoader(data) 
+func (app *application) validateJSON(loader gojsonschema.JSONLoader, data []byte) error {
+	payloadLoader := gojsonschema.NewBytesLoader(data)
 
 	result, err := gojsonschema.Validate(loader, payloadLoader)
 	if err != nil {

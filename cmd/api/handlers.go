@@ -11,14 +11,14 @@ import (
 
 func (app *application) Sale(w http.ResponseWriter, r *http.Request) {
 	var ticket SalePayload
-	err := app.readJSON(w, r, &ticket, schemas.SaleLoader)
+	err := app.readJSON(w, r, schemas.SaleLoader, &ticket)
 	if err != nil {
 		switch {
 		case errors.Is(err, models.ErrBodyTooLarge):
-			app.errorJSON(w, err, http.StatusRequestEntityTooLarge)
+			app.errorJSON(w, http.StatusRequestEntityTooLarge)
 			return
 		default:
-			app.errorJSON(w, err)
+			app.errorJSON(w)
 			return
 		}
 	}
@@ -58,34 +58,30 @@ func (app *application) Sale(w http.ResponseWriter, r *http.Request) {
 		case *pgconn.PgError:
 			switch pgErr.Code {
 			case models.DublicateCode:
-				app.errorJSON(w, models.ErrTicketAlreadyExists, http.StatusConflict)
+				app.errorJSON(w,  http.StatusConflict)
 				return
 			}
 		default:
-			app.errorJSON(w, err)
+			app.errorJSON(w)
 		}
 		return
 	}
 
-	var payload JSONResponse
-	payload.Error = false
-	payload.Message = "ticket was sold"
-
-	app.writeJSON(w, http.StatusOK, payload)
+	app.writeJSON(w, http.StatusOK)
 
 }
 
 func (app *application) Refund(w http.ResponseWriter, r *http.Request) {
 	var rp RefundPayload
 
-	err := app.readJSON(w, r, &rp, schemas.RefundLoader)
+	err := app.readJSON(w, r, schemas.RefundLoader, &rp)
 	if err != nil {
 		switch {
 		case errors.Is(err, models.ErrBodyTooLarge):
-			app.errorJSON(w, err, http.StatusRequestEntityTooLarge)
+			app.errorJSON(w, http.StatusRequestEntityTooLarge)
 			return
 		default:
-			app.errorJSON(w, err)
+			app.errorJSON(w,)
 			return
 		}
 	}
@@ -94,15 +90,11 @@ func (app *application) Refund(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch err {
 		case models.ErrTicketRefund:
-			app.errorJSON(w, err, http.StatusConflict)
+			app.errorJSON(w,  http.StatusConflict)
 		default:
-			app.errorJSON(w, models.ErrServerError, http.StatusInternalServerError)
+			app.errorJSON(w, http.StatusInternalServerError)
 		}
 	}
 
-	var payload JSONResponse
-	payload.Error = false
-	payload.Message = "ticket was refunded"
-
-	app.writeJSON(w, http.StatusOK, payload)
+	app.writeJSON(w, http.StatusOK)
 }
