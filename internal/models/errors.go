@@ -12,9 +12,9 @@ var (
 	ErrServerError               = errors.New("ERROR: server error")
 	ErrColumnNotSupported        = errors.New("ERROR: column type not supported")
 	ErrRequestTimeout            = errors.New("ERROR: request Timeout")
-	ErrAlreadyResponded          = errors.New("already responded")
+	ErrAlreadyResponded          = errors.New("ERROR: already responded")
 	ErrNoSale                    = errors.New("ERROR: no sale by ticket id")
-	ErrTicketWasRefunded         = errors.New("ERROR: ticket was refunded")
+	ErrTicketRefund         	 = errors.New("ERROR: unknown refund error")
 	ErrJSONNotValid				 = errors.New("ERROR: json not valid")
 
 	ErrBodyTooLarge = errors.New("http: request body too large")

@@ -77,6 +77,7 @@ func (m *PostgresDBRepo) getSaleTicketsCountByTicketNumber(ctx context.Context, 
 
 	rows, err := tx.QueryContext(ctx, query, tn)
 	if err != nil {
+		_ = tx.Rollback()
 		return 0, err
 	}
 
@@ -86,6 +87,7 @@ func (m *PostgresDBRepo) getSaleTicketsCountByTicketNumber(ctx context.Context, 
 		rows.Scan(&sn)
 
 		if err := rows.Err(); err != nil {
+			_ = tx.Rollback()
 			return 0, err
 		}
 
@@ -115,7 +117,7 @@ func (m *PostgresDBRepo) RefundTicketsByTicketNumber(tn string) error {
 
 	if count == 0 {
 		_ = tx.Rollback()
-		return models.ErrTicketWasRefunded
+		return models.ErrTicketRefund
 	}
 
 	const query = `
@@ -136,7 +138,7 @@ func (m *PostgresDBRepo) RefundTicketsByTicketNumber(tn string) error {
 	}
 
 	if num == 0 {
-		return models.ErrTicketWasRefunded
+		return models.ErrTicketRefund
 	}
 
 	if err := tx.Commit(); err != nil {

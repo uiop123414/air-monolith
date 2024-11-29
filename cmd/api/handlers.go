@@ -93,7 +93,7 @@ func (app *application) Refund(w http.ResponseWriter, r *http.Request) {
 	err = app.DB.RefundTicketsByTicketNumber(rp.TicketNumber)
 	if err != nil {
 		switch err {
-		case models.ErrTicketWasRefunded:
+		case models.ErrTicketRefund:
 			app.errorJSON(w, err, http.StatusConflict)
 		default:
 			app.errorJSON(w, models.ErrServerError, http.StatusInternalServerError)

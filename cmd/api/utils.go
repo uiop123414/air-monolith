@@ -57,15 +57,9 @@ func (app *application) readJSON(w http.ResponseWriter, r *http.Request, data in
 		return err
 	}
 
-	payloadLoader := gojsonschema.NewBytesLoader(bodyBytes) // TODO move to another file validate logic
-
-	result, err := gojsonschema.Validate(loader, payloadLoader)
+	err = app.validateJSON(loader, bodyBytes)
 	if err != nil {
 		return err
-	}
-
-	if !result.Valid() {
-		return models.ErrJSONNotValid
 	}
 
 	err = json.Unmarshal(bodyBytes, data)
@@ -103,4 +97,20 @@ func (app *application) errorJSONWithMSG(w http.ResponseWriter, err error, error
 	payload.Data = errors
 
 	return app.writeJSON(w, statusCode, payload)
+}
+
+
+func (app *application) validateJSON( loader gojsonschema.JSONLoader, data []byte) error {
+	payloadLoader := gojsonschema.NewBytesLoader(data) 
+
+	result, err := gojsonschema.Validate(loader, payloadLoader)
+	if err != nil {
+		return err
+	}
+
+	if !result.Valid() {
+		return models.ErrJSONNotValid
+	}
+
+	return nil
 }
