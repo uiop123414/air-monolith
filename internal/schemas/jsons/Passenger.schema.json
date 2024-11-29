@@ -18,16 +18,18 @@
       "type": "string"
     },
     "birthdate": {
-      "$ref": "./Birthdate.json"
+      "$ref": "./Birthdate.schema.json"
     },
     "gender": {
-      "type": "string"
+      "type": "string",
+      "enum": ["F", "M"]
     },
     "passenger_type": {
       "type": "string"
     },
     "ticket_number": {
-      "type": "string"
+      "type": "string",
+      "pattern": "^[0-9]{13}$"
     },
     "ticket_type": {
       "type": "integer"
@@ -43,5 +45,24 @@
     "passenger_type",
     "ticket_number",
     "ticket_type"
+  ],
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "doc_type": {
+            "const": "00"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "doc_number": {
+            "type": "string",
+            "pattern": "^[0-9]{10}$"
+          }
+        }
+      }
+    }
   ]
 }

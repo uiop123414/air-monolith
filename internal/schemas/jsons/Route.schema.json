@@ -12,13 +12,13 @@
       "type": "string"
     },
     "depart_datetime": {
-      "$ref": "./CustomTime.json"
+      "$ref": "./CustomTime.schema.json"
     },
     "arrive_place": {
       "type": "string"
     },
     "arrive_datetime": {
-      "$ref": "./CustomTime.json"
+      "$ref": "./CustomTime.schema.json"
     },
     "pnr_id": {
       "type": "string"

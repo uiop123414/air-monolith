@@ -3,7 +3,6 @@ package main
 import (
 	"air-monolith/internal/models"
 	"air-monolith/internal/schemas"
-	"air-monolith/internal/validator"
 	"errors"
 	"net/http"
 
@@ -22,17 +21,6 @@ func (app *application) Sale(w http.ResponseWriter, r *http.Request) {
 			app.errorJSON(w, err)
 			return
 		}
-	}
-
-	v := validator.New()
-
-	ValidateGender(v, ticket.Passenger.Gender)
-	ValidateTicketNumber(v, ticket.Passenger.TicketNumber)
-	ValidateDocNumber(v, ticket.Passenger.DocType, ticket.Passenger.DocNumber)
-
-	if !v.Valid() {
-		app.errorJSONWithMSG(w, models.ErrInvalidCredentils, v.Errors)
-		return
 	}
 
 	segments := []models.Segment{}
@@ -92,8 +80,14 @@ func (app *application) Refund(w http.ResponseWriter, r *http.Request) {
 
 	err := app.readJSON(w, r, &rp, schemas.RefundLoader)
 	if err != nil {
-		app.errorJSON(w, err)
-		return
+		switch {
+		case errors.Is(err, models.ErrBodyTooLarge):
+			app.errorJSON(w, err, http.StatusRequestEntityTooLarge)
+			return
+		default:
+			app.errorJSON(w, err)
+			return
+		}
 	}
 
 	err = app.DB.RefundTicketsByTicketNumber(rp.TicketNumber)

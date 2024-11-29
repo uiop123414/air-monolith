@@ -2,7 +2,6 @@ package main
 
 import (
 	"air-monolith/internal/models"
-	"air-monolith/internal/validator"
 )
 
 type SalePayload struct {
@@ -43,20 +42,3 @@ type RefundPayload struct {
 	TicketNumber   string            `json:"ticket_number"`
 }
 
-func ValidateTicketNumber(v *validator.Validator, ticketNumber string) {
-	v.Check(ticketNumber != "", "ticket_number", "must be provided")
-	v.Check(validator.Matches(ticketNumber, validator.NNumbersRegex(13)), "ticket_number", "must be exactly 13 in length and contain only numbers")
-}
-
-func ValidateGender(v *validator.Validator, gender string) {
-	v.Check(gender != "", "gender", "must be provided")
-	v.Check(validator.In(gender, "F", "M"), "gender", "must be F or M")
-}
-
-func ValidateDocNumber(v *validator.Validator, DocType, DocNumber string) {
-	v.Check(DocType != "", "doc_type", "must be provided")
-	v.Check(DocNumber != "", "doc_number", "must be provided")
-	if DocType == "00" {
-		v.Check(validator.Matches(DocNumber, validator.NNumbersRegex(10)), "doc_number", "must be exactly 10 in length and contain only numbers")
-	}
-}

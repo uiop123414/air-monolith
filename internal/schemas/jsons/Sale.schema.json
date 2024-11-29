@@ -6,19 +6,26 @@
       "type": "string"
     },
     "operation_time": {
-      "$ref": "./CustomTime.json"
+      "$ref": "./CustomTime.schema.json"
     },
     "operation_place": {
       "type": "string"
     },
-    "ticket_number": {
-      "type": "string"
+    "passenger": {
+      "$ref": "./Passenger.schema.json"
+    },
+    "routes": {
+      "type": "array",
+      "items": {
+        "$ref": "./Route.schema.json"
+      }
     }
   },
   "required": [
     "operation_type",
     "operation_time",
     "operation_place",
-    "ticket_number"
+    "passenger",
+    "routes"
   ]
 }

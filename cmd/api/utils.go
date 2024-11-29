@@ -4,7 +4,6 @@ import (
 	"air-monolith/internal/models"
 	"air-monolith/internal/rww"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 
@@ -17,7 +16,7 @@ type JSONResponse struct {
 	Data    interface{} `json:"data,omitempty"`
 }
 
-const maxBytes = 2 * 1024 * 1024 // 2 kBs
+const RequestSizeLimit = 2 * 1024 * 1024 // 2 kBs
 
 func (app *application) writeJSON(w http.ResponseWriter, status int, data interface{}, headers ...http.Header) error {
 	rw, ok := w.(*rww.ResponseWriterWrapper)
@@ -50,7 +49,7 @@ func (app *application) writeJSON(w http.ResponseWriter, status int, data interf
 }
 
 func (app *application) readJSON(w http.ResponseWriter, r *http.Request, data interface{}, loader gojsonschema.JSONLoader) error {
-	r.Body = http.MaxBytesReader(w, r.Body, int64(maxBytes))
+	r.Body = http.MaxBytesReader(w, r.Body, int64(RequestSizeLimit))
 	defer r.Body.Close()
 
 	bodyBytes, err := io.ReadAll(r.Body)
@@ -58,7 +57,7 @@ func (app *application) readJSON(w http.ResponseWriter, r *http.Request, data in
 		return err
 	}
 
-	payloadLoader := gojsonschema.NewBytesLoader(bodyBytes) // TODO разобраться с JSON схемами
+	payloadLoader := gojsonschema.NewBytesLoader(bodyBytes) // TODO move to another file validate logic
 
 	result, err := gojsonschema.Validate(loader, payloadLoader)
 	if err != nil {
@@ -66,14 +65,13 @@ func (app *application) readJSON(w http.ResponseWriter, r *http.Request, data in
 	}
 
 	if !result.Valid() {
-		for _, desc := range result.Errors() {
-            fmt.Printf("- %s\n", desc)
-        }
 		return models.ErrJSONNotValid
 	}
 
-	data = result
-	fmt.Println(result)
+	err = json.Unmarshal(bodyBytes, data)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
