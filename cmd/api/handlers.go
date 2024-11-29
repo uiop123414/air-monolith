@@ -58,7 +58,7 @@ func (app *application) Sale(w http.ResponseWriter, r *http.Request) {
 		case *pgconn.PgError:
 			switch pgErr.Code {
 			case models.DublicateCode:
-				app.errorJSON(w,  http.StatusConflict)
+				app.errorJSON(w, http.StatusConflict)
 				return
 			}
 		default:
@@ -81,7 +81,7 @@ func (app *application) Refund(w http.ResponseWriter, r *http.Request) {
 			app.errorJSON(w, http.StatusRequestEntityTooLarge)
 			return
 		default:
-			app.errorJSON(w,)
+			app.errorJSON(w)
 			return
 		}
 	}
@@ -90,7 +90,7 @@ func (app *application) Refund(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch err {
 		case models.ErrTicketRefund:
-			app.errorJSON(w,  http.StatusConflict)
+			app.errorJSON(w, http.StatusConflict)
 		default:
 			app.errorJSON(w, http.StatusInternalServerError)
 		}

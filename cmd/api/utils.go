@@ -28,13 +28,12 @@ func (app *application) writeJSON(w http.ResponseWriter, status int, headers ...
 		return models.ErrAlreadyResponded
 	}
 
-	
 	if len(headers) > 0 {
 		for key, value := range headers[0] {
 			w.Header()[key] = value
 		}
 	}
-	
+
 	w.WriteHeader(status)
 	w.Write([]byte{})
 	return nil
