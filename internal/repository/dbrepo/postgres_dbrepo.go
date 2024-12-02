@@ -2,6 +2,7 @@ package dbrepo
 
 import (
 	"air-monolith/internal/models"
+	"context"
 	"database/sql"
 	"time"
 )
@@ -10,13 +11,16 @@ type PostgresDBRepo struct {
 	DB *sql.DB
 }
 
-const dbTimeOut = time.Second * 120
+const DBTIMEOUT = time.Second * 120
 
 func (m *PostgresDBRepo) Connection() *sql.DB {
 	return m.DB
 }
 
 func (m *PostgresDBRepo) CreateSale(segments []models.Segment) error {
+	ctx, cancel := context.WithTimeout(context.Background(), DBTIMEOUT)
+	defer cancel()
+
 	tx, err := m.DB.Begin()
 	if err != nil {
 		return err
@@ -39,7 +43,7 @@ func (m *PostgresDBRepo) CreateSale(segments []models.Segment) error {
 	`
 
 	for i, segment := range segments {
-		_, err := tx.Exec(query,
+		_, err := tx.ExecContext(ctx, query,
 			segment.OperationType, segment.OperationTime,
 			segment.OperationTime.GetTimezone(), segment.OperationPlace,
 			segment.PassengerName, segment.PassengerSurname, segment.PassengerPatronymic,
@@ -63,6 +67,9 @@ func (m *PostgresDBRepo) CreateSale(segments []models.Segment) error {
 }
 
 func (m *PostgresDBRepo) getSaleTicketsCountByTicketNumber(tx *sql.Tx, tn string) (int64, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), DBTIMEOUT)
+	defer cancel()
+
 	const query = `
 		SELECT serial_number
 		FROM segments 
@@ -71,7 +78,7 @@ func (m *PostgresDBRepo) getSaleTicketsCountByTicketNumber(tx *sql.Tx, tn string
 
 	var sns []int64
 
-	rows, err := tx.Query(query, tn)
+	rows, err := tx.QueryContext(ctx, query, tn)
 	if err != nil {
 		_ = tx.Rollback()
 		return 0, err
@@ -94,6 +101,9 @@ func (m *PostgresDBRepo) getSaleTicketsCountByTicketNumber(tx *sql.Tx, tn string
 }
 
 func (m *PostgresDBRepo) RefundTicketsByTicketNumber(tn string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), DBTIMEOUT)
+	defer cancel()
+
 	tx, err := m.DB.Begin()
 	if err != nil {
 		return err
@@ -118,7 +128,7 @@ func (m *PostgresDBRepo) RefundTicketsByTicketNumber(tn string) error {
 		SET operation_type='refund'
 		WHERE ticket_number = $1 and operation_type='sale'`
 
-	result, err := tx.Exec(query, tn)
+	result, err := tx.ExecContext(ctx, query, tn)
 	if err != nil {
 		_ = tx.Rollback()
 		return err
@@ -142,9 +152,12 @@ func (m *PostgresDBRepo) RefundTicketsByTicketNumber(tn string) error {
 }
 
 func (m *PostgresDBRepo) setDBTimeout(tx *sql.Tx) error {
+	ctx, cancel := context.WithTimeout(context.Background(), DBTIMEOUT)
+	defer cancel()
+
 	const query = `SET LOCAL lock_timeout = '120s';`
 
-	_, err := tx.Exec(query)
+	_, err := tx.ExecContext(ctx, query)
 	if err != nil {
 		_ = tx.Rollback()
 		return err
