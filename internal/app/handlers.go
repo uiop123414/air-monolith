@@ -3,7 +3,7 @@ package app
 import (
 	"air-monolith/internal/models"
 	"air-monolith/internal/schemas"
-	pkg "air-monolith/pkg/utils"
+	utils "air-monolith/pkg/utils"
 	"errors"
 	"net/http"
 
@@ -12,14 +12,14 @@ import (
 
 func (app *Application) Sale(w http.ResponseWriter, r *http.Request) {
 	var ticket models.SalePayload
-	err := pkg.ReadJSON(w, r, schemas.SaleLoader, &ticket)
+	err := utils.ReadJSON(w, r, schemas.SaleLoader, &ticket)
 	if err != nil {
 		switch {
 		case errors.Is(err, models.ErrBodyTooLarge):
-			pkg.ErrorJSON(w, http.StatusRequestEntityTooLarge)
+			utils.ErrorJSON(w, http.StatusRequestEntityTooLarge)
 			return
 		default:
-			pkg.ErrorJSON(w)
+			utils.ErrorJSON(w)
 			return
 		}
 	}
@@ -59,30 +59,30 @@ func (app *Application) Sale(w http.ResponseWriter, r *http.Request) {
 		case *pgconn.PgError:
 			switch pgErr.Code {
 			case models.DublicateCode:
-				pkg.ErrorJSON(w, http.StatusConflict)
+				utils.ErrorJSON(w, http.StatusConflict)
 				return
 			}
 		default:
-			pkg.ErrorJSON(w)
+			utils.ErrorJSON(w)
 		}
 		return
 	}
 
-	pkg.WriteJSON(w, http.StatusOK)
+	utils.WriteJSON(w, http.StatusOK)
 
 }
 
 func (app *Application) Refund(w http.ResponseWriter, r *http.Request) {
 	var rp models.RefundPayload
 
-	err := pkg.ReadJSON(w, r, schemas.RefundLoader, &rp)
+	err := utils.ReadJSON(w, r, schemas.RefundLoader, &rp)
 	if err != nil {
 		switch {
 		case errors.Is(err, models.ErrBodyTooLarge):
-			pkg.ErrorJSON(w, http.StatusRequestEntityTooLarge)
+			utils.ErrorJSON(w, http.StatusRequestEntityTooLarge)
 			return
 		default:
-			pkg.ErrorJSON(w)
+			utils.ErrorJSON(w)
 			return
 		}
 	}
@@ -91,11 +91,11 @@ func (app *Application) Refund(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch err {
 		case models.ErrTicketRefund:
-			pkg.ErrorJSON(w, http.StatusConflict)
+			utils.ErrorJSON(w, http.StatusConflict)
 		default:
-			pkg.ErrorJSON(w, http.StatusInternalServerError)
+			utils.ErrorJSON(w, http.StatusInternalServerError)
 		}
 	}
 
-	pkg.WriteJSON(w, http.StatusOK)
+	utils.WriteJSON(w, http.StatusOK)
 }
