@@ -13,7 +13,9 @@ func (app *application) TimeoutMiddleware(timeout time.Duration) func(http.Handl
 			// Wrap ResponseWriter
 			rw := &rww.ResponseWriterWrapper{ResponseWriter: w}
 
-			ctx, cancel := context.WithTimeout(r.Context(), timeout)
+			ctx, cancel := context.WithTimeout(r.Context(), timeout) // TODO исправить контексты 
+			// Стандартная структура - все перекинуть в pkg
+			// TODO - написать тесты с помощью mockery
 			defer cancel()
 
 			r = r.WithContext(ctx)

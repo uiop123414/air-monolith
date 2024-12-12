@@ -7,7 +7,6 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"sync"
 	"time"
 )
 
@@ -29,7 +28,6 @@ type application struct {
 	cfg    config
 	logger *jsonlog.Logger
 	DB     repository.DatabaseRepo
-	mu     sync.Mutex
 }
 
 const timeout = time.Duration(120 * time.Second)
@@ -52,7 +50,6 @@ func main() {
 	app.cfg = cfg
 	app.logger = jsonlog.New(os.Stdout, jsonlog.LevelInfo)
 
-	app.mu = sync.Mutex{}
 
 	conn, err := app.connectToDB()
 	if err != nil {
