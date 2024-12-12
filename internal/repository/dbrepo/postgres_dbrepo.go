@@ -4,29 +4,23 @@ import (
 	"air-monolith/internal/models"
 	"context"
 	"database/sql"
-	"time"
 )
 
 type PostgresDBRepo struct {
 	DB *sql.DB
 }
 
-const DBTIMEOUT = time.Second * 120
-
 func (m *PostgresDBRepo) Connection() *sql.DB {
 	return m.DB
 }
 
-func (m *PostgresDBRepo) CreateSale(segments []models.Segment) error {
-	ctx, cancel := context.WithTimeout(context.Background(), DBTIMEOUT)
-	defer cancel()
-
+func (m *PostgresDBRepo) CreateSale(ctx context.Context, segments []models.Segment) error {
 	tx, err := m.DB.Begin()
 	if err != nil {
 		return err
 	}
 
-	m.setDBTimeout(tx)
+	m.setDBTimeout(ctx, tx)
 
 	const query = `
 	INSERT INTO segments (
@@ -66,10 +60,7 @@ func (m *PostgresDBRepo) CreateSale(segments []models.Segment) error {
 	return nil
 }
 
-func (m *PostgresDBRepo) getSaleTicketsCountByTicketNumber(tx *sql.Tx, tn string) (int64, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), DBTIMEOUT)
-	defer cancel()
-
+func (m *PostgresDBRepo) getSaleTicketsCountByTicketNumber(ctx context.Context, tx *sql.Tx, tn string) (int64, error) {
 	const query = `
 		SELECT serial_number
 		FROM segments 
@@ -100,18 +91,15 @@ func (m *PostgresDBRepo) getSaleTicketsCountByTicketNumber(tx *sql.Tx, tn string
 	return int64(len(sns)), nil
 }
 
-func (m *PostgresDBRepo) RefundTicketsByTicketNumber(tn string) error {
-	ctx, cancel := context.WithTimeout(context.Background(), DBTIMEOUT)
-	defer cancel()
-
+func (m *PostgresDBRepo) RefundTicketsByTicketNumber(ctx context.Context, tn string) error {
 	tx, err := m.DB.Begin()
 	if err != nil {
 		return err
 	}
 
-	m.setDBTimeout(tx)
+	m.setDBTimeout(ctx, tx)
 
-	count, err := m.getSaleTicketsCountByTicketNumber(tx, tn)
+	count, err := m.getSaleTicketsCountByTicketNumber(ctx, tx, tn)
 
 	if err != nil {
 		_ = tx.Rollback()
@@ -151,10 +139,7 @@ func (m *PostgresDBRepo) RefundTicketsByTicketNumber(tn string) error {
 	return nil
 }
 
-func (m *PostgresDBRepo) setDBTimeout(tx *sql.Tx) error {
-	ctx, cancel := context.WithTimeout(context.Background(), DBTIMEOUT)
-	defer cancel()
-
+func (m *PostgresDBRepo) setDBTimeout(ctx context.Context, tx *sql.Tx) error {
 	const query = `SET LOCAL lock_timeout = '120s';`
 
 	_, err := tx.ExecContext(ctx, query)
