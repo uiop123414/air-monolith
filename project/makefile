@@ -6,7 +6,7 @@ AIR_BINARY = ../air-service
 air-build:
 	@echo Building air server...
 	cd ${AIR_DIR} && GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o ./airApp ./cmd/api
-up_build: air-build
+up_build:
 	@echo "Stopping docker images (if running...)"
 	docker-compose down
 	@echo "Building (when required) and starting docker images..."
